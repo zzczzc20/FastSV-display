@@ -2,6 +2,24 @@ import java.util.*;
 public class SV {
     public static void main(String args[]){
         System.out.println("This is the display program for FastSV");
+        int[] ES = {0, 1, 2, 3, 4, 5, 3, 2};
+        int[] EE = {1, 0, 3, 2, 2, 3, 5, 4};
+        ArrayList<Integer> ESAL = new ArrayList<Integer>();
+        ArrayList<Integer> EEAL = new ArrayList<Integer>();
+        for(int i = 0; i < ES.length; i++){
+            ESAL.add(ES[i]);
+            EEAL.add(EE[i]);
+        }
+        SVKernel FastSV = new SVKernel(6, ESAL, EEAL);
+        SVKernel SlowSV = new SVKernel(6, ESAL, EEAL);
+        FastSV.FastSV();
+        SlowSV.OriginalSV();
+        System.out.println("This is FastSV: ");
+        FastSV.printVector();
+        FastSV.print();
+        System.out.println("This is SlowSV: ");
+        SlowSV.printVector();
+        SlowSV.print();
     }
 }
 
@@ -28,29 +46,35 @@ class SVKernel {
         }
     }
     private void updateFatherVector(){
+        TotOperations += 2 * FatherVector.size();
+        OperationsInParallel += 2;
         for (int i = 0; i < FatherVector.size(); i++){
             FatherVector.set(i, NextFatherVector.get(i));
         }
         setGrandFatherVector();
     }
     private void setGrandFatherVector(){
+        TotOperations += 3 * GrandFatherVector.size();
+        OperationsInParallel += 3;
         for(int i = 0; i < GrandFatherVector.size(); i++){
             GrandFatherVector.set(i, FatherVector.get(FatherVector.get(i)));
         }
     }
     private void shortCutting(){
-        TotOperations += GrandFatherVector.size();
-        OperationsInParallel += 1;
+        TotOperations += 2 * GrandFatherVector.size();
+        OperationsInParallel += 2;
         for(int i = 0; i < GrandFatherVector.size(); i++){
             NextFatherVector.set(i, GrandFatherVector.get(i));
         }     
     }
     private void fnextValidAssign(Integer fnextStatus, Integer toBeAssign){
         if(fnextStatus > toBeAssign){
-            NewFatherVector.set(fnextStatus, toBeAssign);
+            NextFatherVector.set(fnextStatus, toBeAssign);
         }
     }
     private void OriginslTreeHooking(){
+        OperationsInParallel += (8 + 1 + 2); // 8: get operation 1: compare operation 2: assign operation
+        TotOperations += EdgeStartPoint.size() * (8 + 1 + 2);
         for(int i = 0; i < EdgeStartPoint.size(); i++){
             if(FatherVector.get(EdgeStartPoint.get(i)) == GrandFatherVector.get(EdgeStartPoint.get(i))){
                 fnextValidAssign(FatherVector.get(EdgeStartPoint.get(i)), FatherVector.get(EdgeEndPoint.get(i)));
@@ -59,6 +83,8 @@ class SVKernel {
         updateFatherVector();
     }
     private void StochasticHookingAndAggressiveHooking(){
+        OperationsInParallel += (7 + 2 + 2); // 7: get operations, 2 * 2: 2 fnextValidAssign
+        TotOperations += EdgeStartPoint.size() * (7 + 2 + 2);
         for(int i = 0; i < EdgeStartPoint.size(); i++){
             fnextValidAssign(FatherVector.get(EdgeStartPoint.get(i)), GrandFatherVector.get(EdgeEndPoint.get(i)));
         }
@@ -68,16 +94,17 @@ class SVKernel {
         updateFatherVector();
     }
     SVKernel(int NumOfElements, ArrayList<Integer> Start, ArrayList<Integer> End){
-        FatherVector = new ArrayList<Integer>(NumOfElements);
-        FatherVectorBuffer = new ArrayList<Integer>(NumOfElements);
-        NextFatherVector = new ArrayList<Integer>(NumOfElements);
-        GrandFatherVector = new ArrayList<Integer>(NumOfElements);
+        FatherVector = new ArrayList<Integer>();
+        FatherVectorBuffer = new ArrayList<Integer>();
+        NextFatherVector = new ArrayList<Integer>();
+        GrandFatherVector = new ArrayList<Integer>();
         TotOperations = 0;
         OperationsInParallel = 0;
         for (int i = 0; i < NumOfElements; i++){
-            FatherVector.set(i, i);
-            NextFatherVector.set(i, i);
-            GrandFatherVector.set(i, i);
+            FatherVector.add(i);
+            NextFatherVector.add(i);
+            GrandFatherVector.add(i);
+            FatherVectorBuffer.add(i);
         }
         EdgeStartPoint = Start;
         EdgeEndPoint = End;
@@ -100,6 +127,7 @@ class SVKernel {
             s += GrandFatherVector.get(i);
             s += " ";
         }
+        System.out.println(s);
     }
     public void OriginalSV(){
         int i = 0;
