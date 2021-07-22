@@ -13,9 +13,9 @@ public class SV {
         SVKernel FastSV = new SVKernel(6, ESAL, EEAL);
         SVKernel SlowSV = new SVKernel(6, ESAL, EEAL);
         SVKernel BFSV = new SVKernel(6, ESAL, EEAL);
-        FastSV.FastSV();
-        SlowSV.OriginalSV();
-        BFSV.BruteForce();
+        FastSV.FastSV(true);
+        SlowSV.OriginalSV(true);
+        BFSV.BruteForce(true);
         System.out.println("This is FastSV: ");
         FastSV.printVector();
         FastSV.print();
@@ -158,7 +158,7 @@ class SVKernel {
             System.out.println(s);
         }
     }
-    public void OriginalSV(){
+    public void OriginalSV(boolean print){
         int i = 0;
         while (true) {
             OriginslTreeHooking();
@@ -168,9 +168,13 @@ class SVKernel {
             }
             memcpy();
             i++;
+            if(print) {
+                System.out.println("Round number: " + i);
+                printVector();
+            }
         }
     }
-    public void FastSV(){
+    public void FastSV(boolean print){
         int i = 0;
         while (true) {
             StochasticHookingAndAggressiveHooking();
@@ -180,9 +184,13 @@ class SVKernel {
             }
             memcpy();
             i++;
+            if(print) {
+                System.out.println("Round number: " + i);
+                printVector();
+            }
         }
     }
-    public void BruteForce(){
+    public void BruteForce(boolean print){
         int i = 0;
         while (true) {
             for (int iter = 0; iter < EdgeStartPoint.size(); iter++){
@@ -197,6 +205,10 @@ class SVKernel {
                     replace(EdgeStartPoint, big, small);
                     replace(EdgeEndPoint, big, small);
                     replace(BruteForceVector, big, small);
+                }
+                if(print) {
+                    System.out.println("Round number: " + (i * EdgeStartPoint.size() + iter + 1));
+                    printVector(true);
                 }
             }
             if(i != 0){
